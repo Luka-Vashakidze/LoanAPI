@@ -2,6 +2,7 @@
 using Project.Data;
 using Project.Dtos;
 using Project.Enums;
+using Project.Exceptions;
 using Project.Models;
 
 namespace Project.Services
@@ -19,13 +20,13 @@ namespace Project.Services
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                throw new Exception("User does not exist.");
+                throw new NotFoundException("User not found.");
 
             bool isCurrentlyBlocked = user.IsBlocked ||
                 (user.BlockedUntil.HasValue && user.BlockedUntil.Value > DateTime.UtcNow);
 
             if (isCurrentlyBlocked)
-                throw new Exception("User is blocked and cannot request a loan.");
+                throw new ForbiddenException("User is blocked and cannot request a loan.");
 
             var loan = new Loan
             {

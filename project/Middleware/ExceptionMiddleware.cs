@@ -1,5 +1,6 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
+using Project.Exceptions;
 
 namespace Project.Middleware
 {
@@ -20,27 +21,43 @@ namespace Project.Middleware
             {
                 await _next(context);
             }
+            catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Not Found: {Message}", ex.Message);
+                await WriteResponseAsync(context, (int)HttpStatusCode.NotFound, ex.Message);
+            }
+            catch (BadRequestException ex)
+            {
+                _logger.LogWarning(ex, "Bad Request: {Message}", ex.Message);
+                await WriteResponseAsync(context, (int)HttpStatusCode.BadRequest, ex.Message);
+            }
+            catch (ForbiddenException ex)
+            {
+                _logger.LogWarning(ex, "Forbidden: {Message}", ex.Message);
+                await WriteResponseAsync(context, (int)HttpStatusCode.Forbidden, ex.Message);
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Something went wrong: {Message}", ex.Message);
-                await HandleExceptionAsync(context, ex);
+                _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
+                await WriteResponseAsync(
+                    context,
+                    (int)HttpStatusCode.InternalServerError,
+                    "An internal server error occurred.");
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static Task WriteResponseAsync(HttpContext context, int statusCode, string message)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = statusCode;
 
-            var response = new
+            var payload = JsonSerializer.Serialize(new
             {
-                StatusCode = context.Response.StatusCode,
-                Message = "Internal Server Error. Please contact support.",
-                Detailed = exception.Message 
-            };
+                StatusCode = statusCode,
+                Message = message
+            });
 
-            var json = JsonSerializer.Serialize(response);
-            return context.Response.WriteAsync(json);
+            return context.Response.WriteAsync(payload);
         }
     }
 }
