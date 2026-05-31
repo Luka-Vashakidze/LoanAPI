@@ -55,7 +55,10 @@ namespace Project.Services
                 return "Wrong password";
             }
 
-            if (user.IsBlocked) return "Blocked";
+            bool isCurrentlyBlocked = user.IsBlocked ||
+                (user.BlockedUntil.HasValue && user.BlockedUntil.Value > DateTime.UtcNow);
+
+            if (isCurrentlyBlocked) return "Blocked";
 
             return CreateToken(user);
         }

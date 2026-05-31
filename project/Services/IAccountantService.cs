@@ -6,7 +6,7 @@ namespace Project.Services
 {
     public interface IAccountantService
     {
-        Task<bool> BlockUserAsync(int userId);
+        Task<bool> BlockUserAsync(int userId, int days);
         Task<bool> UnblockUserAsync(int userId);
         Task<bool> ChangeLoanStatusAsync(int loanId, LoanStatus newStatus);
         Task<List<Loan>> GetAllLoansAsync();

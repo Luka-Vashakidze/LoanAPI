@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Project.Dtos;
 using Project.Services;
+using Project.Models;
 
 namespace Project.Controllers
 {
@@ -18,11 +19,11 @@ namespace Project.Controllers
         }
 
         [HttpPatch("block-user/{userId}")]
-        public async Task<IActionResult> BlockUser(int userId)
+        public async Task<IActionResult> BlockUser(int userId, [FromBody] BlockUserDto request)
         {
-            if (await _accountantService.BlockUserAsync(userId))
+            if (await _accountantService.BlockUserAsync(userId, request.Days))
             {
-                return Ok("User blocked successfully.");
+                return Ok($"User blocked for {request.Days} day(s).");
             }
             return NotFound("User not found.");
         }

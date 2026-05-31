@@ -10,6 +10,7 @@ using FluentValidation;
 using Project.Middleware;
 using Serilog;
 using System.Text.Json.Serialization;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 
 namespace project
@@ -31,6 +32,7 @@ namespace project
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
             builder.Services.AddFluentValidationAutoValidation();
@@ -63,6 +65,8 @@ namespace project
                     Title = "My Loan API Project",
                     Version = "v1"
                 });
+
+                c.UseInlineDefinitionsForEnums();
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

@@ -18,10 +18,14 @@ namespace Project.Services
         public async Task<Loan> CreateLoanAsync(int userId, CreateLoanDto request)
         {
             var user = await _context.Users.FindAsync(userId);
-            if (user == null || user.IsBlocked)
-            {
-                throw new Exception("User is blocked or does not exist.");
-            }
+            if (user == null)
+                throw new Exception("User does not exist.");
+
+            bool isCurrentlyBlocked = user.IsBlocked ||
+                (user.BlockedUntil.HasValue && user.BlockedUntil.Value > DateTime.UtcNow);
+
+            if (isCurrentlyBlocked)
+                throw new Exception("User is blocked and cannot request a loan.");
 
             var loan = new Loan
             {

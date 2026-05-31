@@ -6,7 +6,7 @@ namespace Project.Validators
 {
     public class CreateLoanValidator : AbstractValidator<CreateLoanDto>
     {
-        public CreateLoanValidator()
+        public CreateLoanValidator() 
         {
             RuleFor(x => x.Amount)
                 .GreaterThan(0).WithMessage("Loan amount must be greater than 0.");

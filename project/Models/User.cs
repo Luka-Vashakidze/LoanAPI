@@ -13,6 +13,7 @@ namespace Project.Models
         public string Email { get; set; } = string.Empty;
         public decimal MonthlyIncome { get; set; }
         public bool IsBlocked { get; set; } = false;
+        public DateTime? BlockedUntil { get; set; }
 
         [JsonIgnore]
         public string PasswordHash { get; set; } = string.Empty;

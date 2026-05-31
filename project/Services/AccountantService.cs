@@ -15,12 +15,13 @@ namespace Project.Services
             _context = context;
         }
 
-        public async Task<bool> BlockUserAsync(int userId)
+        public async Task<bool> BlockUserAsync(int userId, int days)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return false;
 
             user.IsBlocked = true;
+            user.BlockedUntil = DateTime.UtcNow.AddDays(days);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -31,6 +32,7 @@ namespace Project.Services
             if (user == null) return false;
 
             user.IsBlocked = false;
+            user.BlockedUntil = null;
             await _context.SaveChangesAsync();
             return true;
         }
