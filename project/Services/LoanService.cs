@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Project.Constants;
 using Project.Data;
 using Project.Dtos;
 using Project.Enums;
@@ -22,10 +23,14 @@ namespace Project.Services
             if (user == null)
                 throw new NotFoundException("User not found.");
 
-            bool isCurrentlyBlocked = user.IsBlocked ||
-                (user.BlockedUntil.HasValue && user.BlockedUntil.Value > DateTime.UtcNow);
+            if (user.IsBlocked && user.BlockedUntil.HasValue && user.BlockedUntil.Value <= DateTime.UtcNow)
+            {
+                user.IsBlocked = false;
+                user.BlockedUntil = null;
+                await _context.SaveChangesAsync();
+            }
 
-            if (isCurrentlyBlocked)
+            if (user.IsBlocked)
                 throw new ForbiddenException("User is blocked and cannot request a loan.");
 
             var loan = new Loan
@@ -45,14 +50,12 @@ namespace Project.Services
 
         public async Task<List<Loan>> GetAllLoansAsync(int userId, string userRole)
         {
-            if (userRole == "Accountant")
+            if (userRole == Roles.Accountant)
             {
                 return await _context.Loans.Include(l => l.User).ToListAsync();
             }
-            else
-            {
-                return await _context.Loans.Where(l => l.UserId == userId).ToListAsync();
-            }
+
+            return await _context.Loans.Where(l => l.UserId == userId).ToListAsync();
         }
 
         public async Task<Loan?> GetLoanByIdAsync(int id)
@@ -60,14 +63,17 @@ namespace Project.Services
             return await _context.Loans.Include(l => l.User).FirstOrDefaultAsync(l => l.Id == id);
         }
 
-        public async Task<string> UpdateLoanAsync(int id, int userId, UpdateLoanDto request)
+        public async Task UpdateLoanAsync(int id, int userId, UpdateLoanDto request)
         {
             var loan = await _context.Loans.FindAsync(id);
-            if (loan == null) return "Not Found";
+            if (loan == null)
+                throw new NotFoundException("Loan not found.");
 
-            if (loan.UserId != userId) return "Access Denied";
+            if (loan.UserId != userId)
+                throw new ForbiddenException("You cannot edit this loan.");
 
-            if (loan.Status != LoanStatus.InProcess) return "Cannot update loan that is not InProcess";
+            if (loan.Status != LoanStatus.InProcess)
+                throw new BadRequestException("Loan can only be updated while it is InProcess.");
 
             loan.LoanType = request.LoanType;
             loan.Amount = request.Amount;
@@ -75,21 +81,22 @@ namespace Project.Services
             loan.PeriodInMonths = request.PeriodInMonths;
 
             await _context.SaveChangesAsync();
-            return "Success";
         }
 
-        public async Task<string> DeleteLoanAsync(int id, int userId)
+        public async Task DeleteLoanAsync(int id, int userId)
         {
             var loan = await _context.Loans.FindAsync(id);
-            if (loan == null) return "Not Found";
+            if (loan == null)
+                throw new NotFoundException("Loan not found.");
 
-            if (loan.UserId != userId) return "Access Denied";
+            if (loan.UserId != userId)
+                throw new ForbiddenException("You cannot delete this loan.");
 
-            if (loan.Status != LoanStatus.InProcess) return "Cannot delete loan that is not InProcess";
+            if (loan.Status != LoanStatus.InProcess)
+                throw new BadRequestException("Loan can only be deleted while it is InProcess.");
 
             _context.Loans.Remove(loan);
             await _context.SaveChangesAsync();
-            return "Success";
         }
     }
 }

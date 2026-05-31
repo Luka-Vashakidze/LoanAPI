@@ -11,8 +11,8 @@ namespace Project.Services
 
         Task<Loan?> GetLoanByIdAsync(int id);
 
-        Task<string> UpdateLoanAsync(int id, int userId, UpdateLoanDto request);
+        Task UpdateLoanAsync(int id, int userId, UpdateLoanDto request);
 
-        Task<string> DeleteLoanAsync(int id, int userId);
+        Task DeleteLoanAsync(int id, int userId);
     }
 }

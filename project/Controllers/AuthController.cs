@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Project.Constants;
 using Project.Dtos;
-using Project.Services; 
+using Project.Services;
 using System.Security.Claims;
 
 namespace Project.Controllers
@@ -31,26 +32,10 @@ namespace Project.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserLoginDto request)
+        public async Task<IActionResult> Login(UserLoginDto request)
         {
-            var result = await _authService.LoginAsync(request);
-
-            if (result == "User not found")
-            {
-                return BadRequest("User not found.");
-            }
-
-            if (result == "Wrong password")
-            {
-                return BadRequest("Wrong password.");
-            }
-
-            if (result == "Blocked")
-            {
-                return StatusCode(403, "Your account is blocked.");
-            }
-
-            return Ok(new { token = result });
+            var token = await _authService.LoginAsync(request);
+            return Ok(new { token });
         }
 
         [Authorize]
@@ -61,7 +46,7 @@ namespace Project.Controllers
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
             var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value!;
 
-            if (currentUserRole != "Accountant" && currentUserId != id)
+            if (currentUserRole != Roles.Accountant && currentUserId != id)
             {
                 return StatusCode(403, "Access Denied: You can only view your own profile.");
             }

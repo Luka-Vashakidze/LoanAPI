@@ -109,6 +109,8 @@ namespace project
 
             var app = builder.Build();
 
+            DataSeeder.SeedAccountant(app);
+
             // globla exception middleware
             app.UseMiddleware<ExceptionMiddleware>();
 

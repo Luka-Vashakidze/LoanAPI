@@ -1,4 +1,5 @@
-﻿using Project.Enums;
+﻿using Project.Constants;
+using Project.Enums;
 using System.Text.Json.Serialization;
 
 namespace Project.Models
@@ -20,7 +21,7 @@ namespace Project.Models
         [JsonIgnore]
         public string PasswordSalt { get; set; } = string.Empty;
 
-        public string Role { get; set; } = "User";
+        public string Role { get; set; } = Roles.User;
 
         public ICollection<Loan> Loans { get; set; } = new List<Loan>();
     }

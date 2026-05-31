@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Project.Constants;
 using Project.Data;
 using Project.Dtos;
+using Project.Exceptions;
 using Project.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -33,7 +35,7 @@ namespace Project.Services
                 Email = request.Email,
                 Age = request.Age,
                 MonthlyIncome = request.MonthlyIncome,
-                Role = "User", 
+                Role = Roles.User,
                 PasswordHash = Convert.ToBase64String(passwordHash),
                 PasswordSalt = Convert.ToBase64String(passwordSalt)
             };
@@ -48,17 +50,21 @@ namespace Project.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.Username);
 
-            if (user == null) return "User not found";
+            if (user == null)
+                throw new BadRequestException("Invalid username or password.");
 
             if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+                throw new BadRequestException("Invalid username or password.");
+
+            if (user.IsBlocked && user.BlockedUntil.HasValue && user.BlockedUntil.Value <= DateTime.UtcNow)
             {
-                return "Wrong password";
+                user.IsBlocked = false;
+                user.BlockedUntil = null;
+                await _context.SaveChangesAsync();
             }
 
-            bool isCurrentlyBlocked = user.IsBlocked ||
-                (user.BlockedUntil.HasValue && user.BlockedUntil.Value > DateTime.UtcNow);
-
-            if (isCurrentlyBlocked) return "Blocked";
+            if (user.IsBlocked)
+                throw new ForbiddenException("Your account is blocked.");
 
             return CreateToken(user);
         }

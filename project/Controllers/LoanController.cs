@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Project.Constants;
 using Project.Dtos;
 using Project.Services;
-using System.Security.Claims; 
+using System.Security.Claims;
 
 namespace Project.Controllers
 {
@@ -47,7 +48,7 @@ namespace Project.Controllers
 
             if (loan == null) return NotFound("Loan not found");
 
-            if (userRole != "Accountant" && loan.UserId != userId)
+            if (userRole != Roles.Accountant && loan.UserId != userId)
             {
                 return StatusCode(403, "Access Denied: You cannot view this loan.");
             }
@@ -59,13 +60,7 @@ namespace Project.Controllers
         public async Task<IActionResult> UpdateLoan(int id, UpdateLoanDto request)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-
-            var result = await _loanService.UpdateLoanAsync(id, userId, request);
-
-            if (result == "Not Found") return NotFound();
-            if (result == "Access Denied") return StatusCode(403, "You cannot edit this loan.");
-            if (result != "Success") return BadRequest(result);
-
+            await _loanService.UpdateLoanAsync(id, userId, request);
             return Ok("Loan updated successfully.");
         }
 
@@ -73,13 +68,7 @@ namespace Project.Controllers
         public async Task<IActionResult> DeleteLoan(int id)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-
-            var result = await _loanService.DeleteLoanAsync(id, userId);
-
-            if (result == "Not Found") return NotFound();
-            if (result == "Access Denied") return StatusCode(403, "You cannot delete this loan.");
-            if (result != "Success") return BadRequest(result);
-
+            await _loanService.DeleteLoanAsync(id, userId);
             return Ok("Loan deleted successfully.");
         }
     }

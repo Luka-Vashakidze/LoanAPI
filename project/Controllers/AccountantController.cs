@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Project.Constants;
 using Project.Dtos;
 using Project.Services;
 using Project.Models;
 
 namespace Project.Controllers
 {
-    [Authorize(Roles = "Accountant")] 
+    [Authorize(Roles = Roles.Accountant)]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountantController : ControllerBase
