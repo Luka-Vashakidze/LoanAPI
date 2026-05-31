@@ -107,12 +107,24 @@ namespace project
 
             builder.Services.AddScoped<IAccountantService, AccountantService>();
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             var app = builder.Build();
 
             DataSeeder.SeedAccountant(app);
 
             // globla exception middleware
             app.UseMiddleware<ExceptionMiddleware>();
+
+            app.UseCors("AllowFrontend");
 
             if (app.Environment.IsDevelopment())
             {
