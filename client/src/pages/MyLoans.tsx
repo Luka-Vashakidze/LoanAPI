@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
 import type { Loan } from "../types/api";
@@ -6,28 +6,42 @@ import StatusDot from "../components/StatusDot";
 import { formatMoney, formatLoanType } from "../lib/format";
 
 export default function MyLoans() {
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const [loans, setLoans] = useState<Loan[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [confirmingId, setConfirmingId] = useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
+  
+    async function loadLoans() {
+    try {
         const res = await api.get<Loan[]>("/loan/my-loans");
-        if (!cancelled) setLoans(res.data);
-      } catch (err: any) {
-        if (!cancelled) {
-          const data = err.response?.data;
-          setError(data?.Message ?? data?.message ?? "Failed to load loans.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+        setLoans(res.data);
+    } catch (err: any) {
+        const data = err.response?.data;
+        setError(data?.Message ?? data?.message ?? "Failed to load loans.");
+    } finally {
+        setLoading(false);
     }
-    load();
-    return () => { cancelled = true; };
-  }, []);
+    }
+
+    useEffect(() => {
+    loadLoans();
+    }, []);
+
+    async function handleDelete(id: number) {
+    setDeletingId(id);
+    try {
+        await api.delete(`/loan/${id}`);
+        setConfirmingId(null);
+        await loadLoans();
+    } catch (err: any) {
+        const data = err.response?.data;
+        setError(data?.Message ?? data?.message ?? "Failed to delete loan.");
+    } finally {
+        setDeletingId(null);
+    }
+    }
 
   return (
     <div>
@@ -62,21 +76,50 @@ export default function MyLoans() {
           </thead>
           <tbody>
             {loans.map((loan) => (
-              <tr key={loan.id} className="border-b border-line">
-                <td className="py-3 font-mono">{loan.id}</td>
-                <td className="py-3">{formatLoanType(loan.loanType)}</td>
-                <td className="py-3 font-mono">{formatMoney(loan.amount, loan.currency)}</td>
-                <td className="py-3">{loan.periodInMonths} mo</td>
-                <td className="py-3"><StatusDot status={loan.status} /></td>
-                <td className="py-3 text-right">
-                  {loan.status === "InProcess" ? (
-                    <Link to={`/loans/${loan.id}/edit`} className="text-ink underline">Edit</Link>
-                  ) : (
-                    <span className="text-muted">—</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+  <Fragment key={loan.id}>
+    <tr className="border-b border-line">
+      <td className="py-3 font-mono">{loan.id}</td>
+      <td className="py-3">{formatLoanType(loan.loanType)}</td>
+      <td className="py-3 font-mono">{formatMoney(loan.amount, loan.currency)}</td>
+      <td className="py-3">{loan.periodInMonths} mo</td>
+      <td className="py-3"><StatusDot status={loan.status} /></td>
+      <td className="py-3 text-right">
+        {loan.status === "InProcess" ? (
+          <span className="space-x-3">
+            <Link to={`/loans/${loan.id}/edit`} className="text-ink underline">Edit</Link>
+            <button onClick={() => setConfirmingId(loan.id)} className="text-accent underline">Delete</button>
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        )}
+      </td>
+    </tr>
+        {confirmingId === loan.id && (
+        <tr className="border-b border-line bg-line/30">
+            <td colSpan={6} className="py-3 px-1">
+            <div className="flex items-center justify-between">
+                <span className="text-sm">Delete loan #{loan.id}? This cannot be undone.</span>
+                <span className="space-x-3">
+                <button
+                    onClick={() => handleDelete(loan.id)}
+                    disabled={deletingId === loan.id}
+                    className="border border-accent text-accent py-1 px-3 text-sm hover:bg-accent hover:text-bg transition disabled:opacity-50"
+                >
+                    {deletingId === loan.id ? "Deleting…" : "Confirm delete"}
+                </button>
+                <button
+                    onClick={() => setConfirmingId(null)}
+                    className="border border-line py-1 px-3 text-sm hover:border-ink transition"
+                >
+                    Cancel
+                </button>
+                </span>
+            </div>
+            </td>
+        </tr>
+        )}
+    </Fragment>
+    ))}
           </tbody>
         </table>
       )}

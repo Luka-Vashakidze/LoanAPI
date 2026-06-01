@@ -5,6 +5,8 @@ import Layout from "./components/Layout";
 import { useAuth } from "./context/AuthContext";
 import type { ReactNode } from "react";
 import MyLoans from "./pages/MyLoans";
+import CreateLoan from "./pages/CreateLoan";
+import EditLoan from "./pages/EditLoan";
 
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -48,6 +50,22 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+  path="/loans/new"
+  element={
+    <ProtectedRoute>
+      <Layout><CreateLoan /></Layout>
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/loans/:id/edit"
+  element={
+    <ProtectedRoute>
+      <Layout><EditLoan /></Layout>
+    </ProtectedRoute>
+  }
+/>
       <Route
         path="/admin"
         element={
