@@ -4,6 +4,8 @@ import Register from "./pages/Register";
 import Layout from "./components/Layout";
 import { useAuth } from "./context/AuthContext";
 import type { ReactNode } from "react";
+import MyLoans from "./pages/MyLoans";
+
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth();
@@ -42,7 +44,7 @@ function App() {
         path="/loans"
         element={
           <ProtectedRoute>
-            <Layout><Placeholder title="My loans" /></Layout>
+            <Layout><MyLoans /></Layout>
           </ProtectedRoute>
         }
       />
