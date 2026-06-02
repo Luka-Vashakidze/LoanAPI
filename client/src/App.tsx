@@ -7,26 +7,20 @@ import type { ReactNode } from "react";
 import MyLoans from "./pages/MyLoans";
 import CreateLoan from "./pages/CreateLoan";
 import EditLoan from "./pages/EditLoan";
+import AdminLoans from "./pages/AdminLoans";
 
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { token } = useAuth();
+  const { token, initializing } = useAuth();
+  if (initializing) return <p className="p-12 font-serif italic text-muted">Loading…</p>;
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
 function RoleRedirect() {
-  const { role } = useAuth();
+  const { role, initializing } = useAuth();
+   if (initializing) return <p className="p-12 font-serif italic text-muted">Loading…</p>;
   if (role === "Accountant") return <Navigate to="/admin" replace />;
   return <Navigate to="/loans" replace />;
-}
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div>
-      <h1 className="font-serif text-4xl mb-4">{title}</h1>
-      <p className="text-muted">Coming next.</p>
-    </div>
-  );
 }
 
 function App() {
@@ -70,7 +64,7 @@ function App() {
         path="/admin"
         element={
           <ProtectedRoute>
-            <Layout><Placeholder title="All loans" /></Layout>
+            <Layout><AdminLoans /></Layout>
           </ProtectedRoute>
         }
       />

@@ -8,6 +8,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
+  initializing: boolean;
   login: (token: string) => void;
   logout: () => void;
 }
@@ -34,12 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: null,
     role: null,
   });
-
+  const [initializing, setInitializing] = useState(true);
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setState({ token, ...decodeToken(token) });
     }
+    setInitializing(false);
   }, []);
 
   const login = (token: string) => {
@@ -53,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>
+    <AuthContext.Provider value={{ ...state, initializing, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
