@@ -3,6 +3,7 @@ import api from "../api/client";
 import type { Loan, LoanStatus } from "../types/api";
 import StatusDot from "../components/StatusDot";
 import { formatMoney, formatLoanType } from "../lib/format";
+import { Link } from "react-router-dom";
 
 const statuses: LoanStatus[] = ["InProcess", "Approved", "Rejected"];
 
@@ -72,11 +73,15 @@ export default function AdminLoans() {
               <Fragment key={loan.id}>
                 <tr className="border-b border-line">
                   <td className="py-3 font-mono">{loan.id}</td>
-                  <td className="py-3">{loan.user ? loan.user.userName : `#${loan.userId}`}</td>
-                  <td className="py-3">{formatLoanType(loan.loanType)}</td>
-                  <td className="py-3 font-mono">{formatMoney(loan.amount, loan.currency)}</td>
-                  <td className="py-3">{loan.periodInMonths} mo</td>
-                  <td className="py-3"><StatusDot status={loan.status} /></td>
+                    <td className="py-3">
+                        <Link to={`/admin/users/${loan.userId}`} className="text-ink underline">
+                         {loan.user ? loan.user.userName : `#${loan.userId}`}
+                        </Link>
+                    </td>
+                    <td className="py-3">{formatLoanType(loan.loanType)}</td>
+                    <td className="py-3 font-mono">{formatMoney(loan.amount, loan.currency)}</td>
+                    <td className="py-3">{loan.periodInMonths} mo</td>
+                    <td className="py-3"><StatusDot status={loan.status} /></td>
                   <td className="py-3 text-right">
                     <button
                       onClick={() => setEditingId(editingId === loan.id ? null : loan.id)}

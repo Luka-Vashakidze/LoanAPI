@@ -14,6 +14,8 @@ export interface User {
   isBlocked: boolean;
   blockedUntil: string | null;
   role: Role;
+  loans?: Loan[];
+
 }
 
 export interface Loan {

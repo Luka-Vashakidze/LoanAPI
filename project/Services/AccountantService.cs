@@ -19,6 +19,7 @@ namespace Project.Services
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return false;
+            if (user.Role == "Accountant") return false;  
 
             user.IsBlocked = true;
             user.BlockedUntil = DateTime.UtcNow.AddDays(days);

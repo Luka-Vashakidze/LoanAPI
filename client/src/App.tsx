@@ -8,6 +8,8 @@ import MyLoans from "./pages/MyLoans";
 import CreateLoan from "./pages/CreateLoan";
 import EditLoan from "./pages/EditLoan";
 import AdminLoans from "./pages/AdminLoans";
+import AdminUser from "./pages/AdminUser";
+
 
 
 function ProtectedRoute({ children, requireRole }: { children: ReactNode; requireRole?: "User" | "Accountant" }) {
@@ -71,6 +73,14 @@ function App() {
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/admin/users/:id"
+        element={
+          <ProtectedRoute requireRole="Accountant">
+            <Layout><AdminUser /></Layout>
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
