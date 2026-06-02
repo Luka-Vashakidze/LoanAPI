@@ -19,6 +19,7 @@ namespace Project.Controllers
             _loanService = loanService;
         }
 
+        [Authorize(Roles = "User")]
         [HttpPost]
         public async Task<ActionResult<Models.Loan>> CreateLoan(CreateLoanDto request)
         {
@@ -56,6 +57,7 @@ namespace Project.Controllers
             return Ok(loan);
         }
 
+        [Authorize(Roles = "User")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateLoan(int id, UpdateLoanDto request)
         {
@@ -64,6 +66,7 @@ namespace Project.Controllers
             return Ok("Loan updated successfully.");
         }
 
+        [Authorize(Roles = "User")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLoan(int id)
         {

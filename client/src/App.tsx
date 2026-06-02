@@ -10,10 +10,12 @@ import EditLoan from "./pages/EditLoan";
 import AdminLoans from "./pages/AdminLoans";
 
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { token, initializing } = useAuth();
+function ProtectedRoute({ children, requireRole }: { children: ReactNode; requireRole?: "User" | "Accountant" }) {
+  const { token, role, initializing } = useAuth();
   if (initializing) return <p className="p-12 font-serif italic text-muted">Loading…</p>;
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+  if (!token) return <Navigate to="/login" replace />;
+  if (requireRole && role !== requireRole) return <Navigate to="/" replace />;
+  return <>{children}</>;
 }
 
 function RoleRedirect() {
@@ -39,7 +41,7 @@ function App() {
       <Route
         path="/loans"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requireRole="User">
             <Layout><MyLoans /></Layout>
           </ProtectedRoute>
         }
@@ -47,7 +49,7 @@ function App() {
       <Route
   path="/loans/new"
   element={
-    <ProtectedRoute>
+    <ProtectedRoute requireRole="User">
       <Layout><CreateLoan /></Layout>
     </ProtectedRoute>
   }
@@ -55,7 +57,7 @@ function App() {
 <Route
   path="/loans/:id/edit"
   element={
-    <ProtectedRoute>
+    <ProtectedRoute requireRole="User">
       <Layout><EditLoan /></Layout>
     </ProtectedRoute>
   }
@@ -63,7 +65,7 @@ function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requireRole="Accountant">
             <Layout><AdminLoans /></Layout>
           </ProtectedRoute>
         }
