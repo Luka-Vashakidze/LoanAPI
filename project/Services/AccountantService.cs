@@ -3,6 +3,7 @@ using Project.Data;
 using Project.Dtos;
 using Project.Enums;
 using Project.Models;
+using Project.Constants;
 
 namespace Project.Services
 {
@@ -19,7 +20,7 @@ namespace Project.Services
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return false;
-            if (user.Role == "Accountant") return false;  
+            if (user.Role == Roles.Accountant) return false;  
 
             user.IsBlocked = true;
             user.BlockedUntil = DateTime.UtcNow.AddDays(days);
