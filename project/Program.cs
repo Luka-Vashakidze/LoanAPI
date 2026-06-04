@@ -107,11 +107,14 @@ namespace project
 
             builder.Services.AddScoped<IAccountantService, AccountantService>();
 
+            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                                 ?? new[] { "http://localhost:5173" };
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins(allowedOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
@@ -119,12 +122,17 @@ namespace project
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<LoanDbContext>();
+                db.Database.Migrate();
+            }
+
             DataSeeder.SeedAccountant(app);
 
-            // globla exception middleware
-            app.UseMiddleware<ExceptionMiddleware>();
-
             app.UseCors("AllowFrontend");
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
@@ -132,7 +140,10 @@ namespace project
                 app.UseSwaggerUI();
             }
 
-            //app.UseHttpsRedirection();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseAuthentication();
             app.UseAuthorization();
