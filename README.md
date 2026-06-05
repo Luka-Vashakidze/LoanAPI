@@ -23,7 +23,7 @@ Supervisor: Artur Zakharyan
 | :--- | :--- |
 | Web framework | ASP.NET Core 8 |
 | ORM | Entity Framework Core 8 |
-| Database | SQL Server (LocalDB for dev, Azure SQL for production) |
+| Database | SQL Server (LocalDB) |
 | Authentication | Microsoft.AspNetCore.Authentication.JwtBearer |
 | Validation | FluentValidation.AspNetCore |
 | Logging | Serilog.AspNetCore, Serilog.Sinks.File |
@@ -87,22 +87,16 @@ dotnet test
 
 ## Configuration
 
-Production values are supplied via environment variables; the repository contains no production secrets.
+All configuration lives in `appsettings.Development.json` and is read by the standard ASP.NET Core configuration system. The base `appsettings.json` contains no secrets.
 
-Development (`appsettings.Development.json`):
-- `ConnectionStrings:DefaultConnection` — LocalDB connection string
-- `JwtSettings:SecretKey` — local-only signing key
-- `Cors:AllowedOrigins` — `["http://localhost:5173", "http://localhost:5174"]`
-
-Production (Azure App Service environment variables):
-
-| Name | Purpose |
+| Setting | Purpose |
 | :--- | :--- |
-| `ConnectionStrings__DefaultConnection` | Azure SQL connection string |
-| `JwtSettings__SecretKey` | 80-character random secret |
-| `Cors__AllowedOrigins__0` | Deployed frontend origin |
+| `ConnectionStrings:DefaultConnection` | LocalDB connection string |
+| `JwtSettings:SecretKey` | Signing key for JWT tokens |
+| `JwtSettings:Issuer` / `Audience` / `ExpiryMinutes` | Token metadata |
+| `Cors:AllowedOrigins` | Frontend origins allowed to call the API |
 
-The frontend reads `VITE_API_URL` from `.env.production` at build time.
+The frontend reads `VITE_API_URL` from `client/.env.development` when started with `npm run dev`. The code paths support environment-variable overrides (`ConnectionStrings__DefaultConnection`, `JwtSettings__SecretKey`, `Cors__AllowedOrigins__0`, `VITE_API_URL` in `.env.production`) so the project can be deployed to any hosting provider without code changes.
 
 ## API Endpoints
 
@@ -172,14 +166,6 @@ When `block-user/{userId}` is called with `{ "days": N }`, `IsBlocked` is set to
 | `/admin/users/:id` | Accountant | View any user, block or unblock, see their loans. |
 
 JWT is stored in `localStorage` and attached to every request via an Axios interceptor. A 401 response logs the user out.
-
-## Deployment
-
-- Backend: Azure App Service (Linux, .NET 8) in resource group `loan-api-rg`. Deployed via `az webapp deploy` from a published zip. Connection string, JWT secret, and CORS origin are set as App Service environment variables.
-- Database: Azure SQL Database, Free tier. EF Core migrations are applied automatically on application startup.
-- Frontend: Vercel. `VITE_API_URL` points at the App Service URL.
-
-Live URLs are listed in the project submission.
 
 ## Project Structure
 
